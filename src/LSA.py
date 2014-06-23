@@ -32,6 +32,7 @@ def convert_dict_list(dict_data):
 
     return list_data, indices
 
+
 def calculate_similarities(document_matrix):
     """
     Calculate the similarities between every document vector which is contained in the document matrix given as an

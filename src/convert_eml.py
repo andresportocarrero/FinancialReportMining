@@ -8,15 +8,10 @@ __author__ = 'kensk8er'
 
 def convert_eml_txt(file_name):
     message = email.message_from_file(file_name)
-    #if message.is_multipart():
-    #    text = message.get_payload()[0].get_payload()
-    #else:
-    #    text = message.get_payload()
     while message.is_multipart():
         message = message.get_payload()[0]
 
     text = message.get_payload()
-
 
     return text
 
