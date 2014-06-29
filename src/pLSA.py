@@ -50,10 +50,12 @@ if __name__ == '__main__':
     doc_lists, doc_indices = convert_dict_list(documents)
 
     # decrease the number of documents
-    doc_lists = doc_lists[:test_num]
-    doc_indices = doc_indices[:test_num]
+    if doc_num > test_num:
+        doc_lists = doc_lists[:test_num]
+        doc_indices = doc_indices[:test_num]
 
-    vectorizer = CountVectorizer(stop_words='english', dtype='float64')
+    token_pattern = u'(?u)[\\s\\t\\n!\\?\\^\\(-]([A-Za-z]{2,10})[\\s\\t\\n!\\?\\$\\.\\)-]'
+    vectorizer = CountVectorizer(stop_words='english', dtype='float64', token_pattern=token_pattern)
     #analyze = vectorizer.build_analyzer()
     X = vectorizer.fit_transform(doc_lists)
     feature_names = vectorizer.get_feature_names()
@@ -65,6 +67,5 @@ if __name__ == '__main__':
     enpickle(p_z, 'result/plsa/p_z.pkl')
     enpickle(p_w_z, 'result/plsa/p_w_z.pkl')
     enpickle(p_d_z, 'result/plsa/p_d_z.pkl')
-    enpickle(doc_lists, 'result/plsa/doc_indices.pkl')
     enpickle(doc_lists, 'result/plsa/doc_indices.pkl')
     enpickle(feature_names, 'result/plsa/feature_names.pkl')
