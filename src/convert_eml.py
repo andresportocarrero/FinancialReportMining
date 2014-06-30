@@ -1,19 +1,28 @@
+"""
+Convert .eml files into text data and save them into .pkl file.
+"""
 import email
 from glob import glob
 import os
 from utils.util import enpickle
+from dateutil import parser
 
 __author__ = 'kensk8er'
 
 
-def convert_eml_txt(file_name):
+def parse_eml_txt(file_name):
     message = email.message_from_file(file_name)
+    from_name = message.get(name='From')
+    date = parser.parse(message.get(name='Date'))
+
+    # retrieve plain text body
     while message.is_multipart():
         message = message.get_payload()[0]
 
     text = message.get_payload()
 
-    return text
+    # TODO: use dictionary to return the values
+    return text, from_name, date
 
 
 def read_eml(directory_path):
@@ -26,11 +35,13 @@ def read_eml(directory_path):
         count += 1
         print '\r', count, '/', file_num,
         dir_name, file_name = os.path.split(FILE)
-        file_name = file_name.split('.')[0]
+        file_name = file_name.rstrip('.eml')
         eml_file = open(FILE, 'r')
-        text = convert_eml_txt(eml_file)
+        text, from_name, date = parse_eml_txt(eml_file)
         return_dict[file_name] = {}
         return_dict[file_name]['text'] = text
+        return_dict[file_name]['from'] = from_name
+        return_dict[file_name]['date'] = date
 
     return return_dict
 
