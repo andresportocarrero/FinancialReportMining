@@ -55,6 +55,40 @@ def write_similarity_csv(pickle_indices, pickle_data, csv_name):
     print '\r', count, '/', index_num,
 
 
+def write_topic_csv(plsa, csv_name, k):
+    plsa = unpickle(plsa)
+    k = int(k)
+    p_w_z = plsa['p_w_z']
+    word_indices = plsa['word_indices']
+    Z = p_w_z.shape[1]
+    writer = csv.writer(file(csv_name, 'w'))
+
+    output = [[0 for i in range(Z)] for j in range(k)]
+    for z in range(Z):
+        rank = 0
+        for index in p_w_z[:,z].argsort()[::-1]:
+            output[rank][z] = {}
+            output[rank][z]['word'] = word_indices[index]
+            output[rank][z]['p'] = p_w_z[index,z]
+            rank += 1
+            if rank >= k:
+                break
+
+    # 1st row
+    row = ['']
+    for z in range(Z):
+        row.append('z = ' + str(z))
+    writer.writerow(row)
+
+    # 2nd row and onwards
+    for rank in range(k):
+        row = [str(rank+1)]
+
+        for z in range(Z):
+            row.append(output[rank][z]['word'] + ':' + str(output[rank][z]['p']))
+
+        writer.writerow(row)
+
 if __name__ == '__main__':
     args = sys.argv
     assert len(args) > 1, 'at least one argument needed!'
@@ -62,6 +96,8 @@ if __name__ == '__main__':
     if args[1] == 'write_similarity_csv':
         assert len(args) == 5, '4 arguments needed for function write_similarity_csv!'
         write_similarity_csv(pickle_indices=args[2], pickle_data=args[3], csv_name=args[4])
-
+    elif args[1] == 'write_topic_csv':
+        assert len(args) == 5, '4 arguments needed for function write_similarity_csv!'
+        write_topic_csv(plsa=args[2], csv_name=args[3], k=args[4])
     else:
         print 'no function executed'
