@@ -89,6 +89,29 @@ def write_topic_csv(plsa, csv_name, k):
 
         writer.writerow(row)
 
+
+def write_from_similarity(from_similarity, csv_name):
+    from_similarity = unpickle(from_similarity)
+    similarity = from_similarity['similarity']
+    id2from = from_similarity['id2from']
+    from_num = len(id2from)
+    writer = csv.writer(file(csv_name, 'w'))
+
+    # 1st row
+    row = ['']
+    for from_name in id2from:
+        row.append(from_name)
+    writer.writerow(row)
+
+    # 2nd row and onwards
+    for row_num in range(from_num):
+        row = [id2from[row_num]]
+
+        for col_num in range(from_num):
+            row.append(similarity[row_num, col_num])
+
+        writer.writerow(row)
+
 if __name__ == '__main__':
     args = sys.argv
     assert len(args) > 1, 'at least one argument needed!'
@@ -99,5 +122,8 @@ if __name__ == '__main__':
     elif args[1] == 'write_topic_csv':
         assert len(args) == 5, '4 arguments needed for function write_similarity_csv!'
         write_topic_csv(plsa=args[2], csv_name=args[3], k=args[4])
+    elif args[1] == 'write_from_similarity':
+        assert len(args) == 4, '3 arguments needed for function write_similarity_csv!'
+        write_from_similarity(from_similarity=args[2], csv_name=args[3])
     else:
         print 'no function executed'
