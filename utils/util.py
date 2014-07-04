@@ -112,6 +112,27 @@ def write_from_similarity(from_similarity, csv_name):
 
         writer.writerow(row)
 
+
+def write_time_topics(time2topics, csv_name):
+    time2topics = unpickle(time2topics)
+    Z = len(time2topics[0])
+    writer = csv.writer(file(csv_name, 'w'))
+
+    # 1st row
+    row = ['']
+    for time in range(len(time2topics)):
+        row.append('time = ' + str(time))
+    writer.writerow(row)
+
+    # 2nd row and onwards
+    for topic in range(Z):
+        row = ['z = ' + str(topic)]
+
+        for time in range(len(time2topics)):
+            row.append(time2topics[time][topic])
+
+        writer.writerow(row)
+
 if __name__ == '__main__':
     args = sys.argv
     assert len(args) > 1, 'at least one argument needed!'
@@ -125,5 +146,8 @@ if __name__ == '__main__':
     elif args[1] == 'write_from_similarity':
         assert len(args) == 4, '3 arguments needed for function write_similarity_csv!'
         write_from_similarity(from_similarity=args[2], csv_name=args[3])
+    elif args[1] == 'write_time_topics':
+        assert len(args) == 4, '3 arguments needed for function write_similarity_csv!'
+        write_time_topics(time2topics=args[2], csv_name=args[3])
     else:
         print 'no function executed'
