@@ -27,11 +27,13 @@ def convert_from2titles_from2doc_ids(from2titles, id2title):
     :return:
     """
     from2doc_ids = {}
+    from_frequencies = defaultdict(int)
     for from_name, titles in from2titles.items():
         from2doc_ids[from_name] = []
         for title in titles:
             from2doc_ids[from_name].append(id2title.index(title))
-    return from2doc_ids
+            from_frequencies[from_name] += 1
+    return from2doc_ids, from_frequencies
 
 
 def create_from_vectors(doc_vectors, from2doc_ids):
@@ -90,15 +92,24 @@ def convert_from_vectors(from_vectors):
     return np.matrix(from_matrix), from_indices
 
 
+def convert_from_id(from_frequencies, from_indices):
+    N = len(from_frequencies)
+    id_frequencies = [0 for i in range(N)]
+    for from_name, frequency in from_frequencies.items():
+        id_frequencies[from_indices.index(from_name)] = frequency
+    return id_frequencies
+
+
 if __name__ == '__main__':
     plsa = unpickle('result/plsa.pkl')
     documents = unpickle('data/txt/lemmatized_noun_documents.pkl')
 
     from2titles = classify_documents_by_from(documents)
-    from2doc_ids = convert_from2titles_from2doc_ids(from2titles, plsa['doc_indices'])
+    from2doc_ids, from_frequencies = convert_from2titles_from2doc_ids(from2titles, plsa['doc_indices'])
     from_vectors = create_from_vectors(plsa['p_z_d'], from2doc_ids)
     from_matrix, from_indices = convert_from_vectors(from_vectors)
     similarities = compute_similarity(from_matrix)
-    from_similarity = {'similarity': similarities, 'id2from': from_indices}
+    id_frequencies = convert_from_id(from_frequencies, from_indices)
+    from_similarity = {'similarity': similarities, 'id2from': from_indices, 'frequency': id_frequencies}
 
     enpickle(from_similarity, 'result/from_similarity.pkl')

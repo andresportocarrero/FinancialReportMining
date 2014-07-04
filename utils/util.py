@@ -93,6 +93,7 @@ def write_topic_csv(plsa, csv_name, k):
 def write_from_similarity(from_similarity, csv_name):
     from_similarity = unpickle(from_similarity)
     similarity = from_similarity['similarity']
+    frequency = from_similarity['frequency']
     id2from = from_similarity['id2from']
     from_num = len(id2from)
     writer = csv.writer(file(csv_name, 'w'))
@@ -100,12 +101,12 @@ def write_from_similarity(from_similarity, csv_name):
     # 1st row
     row = ['']
     for from_name in id2from:
-        row.append(from_name)
+        row.append(from_name + ' : ' + str(frequency[id2from.index(from_name)]))
     writer.writerow(row)
 
     # 2nd row and onwards
     for row_num in range(from_num):
-        row = [id2from[row_num]]
+        row = [id2from[row_num] + ' : ' + str(frequency[row_num])]
 
         for col_num in range(from_num):
             row.append(similarity[row_num, col_num])
