@@ -1,7 +1,15 @@
-from sklearn.feature_extraction.text import CountVectorizer
-from module.plsa.plsa import pLSA
+"""
+Executable file for PLSA (Probabilistic Latent Semantic Analysis).
+
+When running this file, 'working directory' need to be specified as Project Root (FinancialReportMining).
+"""
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
+from module.plsa.gen_prob import gen_p_w, gen_p_wz, gen_p_z_w, gen_p_d, gen_p_dz, gen_p_z_d
+from module.plsa.plsa import pLSA, normalize
+from module.text.stopword import extended_stopwords
 import utils.taskmanager.taskmanager as tm
 from utils.util import unpickle, enpickle
+import numpy as np
 
 __author__ = 'kensk8er'
 
@@ -39,10 +47,16 @@ def train(data, Z, maxiter=500, debug=True):
 
 
 if __name__ == '__main__':
-    test_num = 1000
+    # expand stopwords list
+    stop_words = extended_stopwords
+
+    # parameters
+    test_num = 9000
+    Z = 100
+    maxiter = 3000
 
     tm.TaskManager.OUTPUT_FOLDER = "./tmp"
-    documents = unpickle('data/txt/documents.pkl')
+    documents = unpickle('data/txt/lemmatized_documents.pkl')
     doc_num = len(documents)
 
     # convert dictionary format into list format
@@ -54,18 +68,36 @@ if __name__ == '__main__':
         doc_lists = doc_lists[:test_num]
         doc_indices = doc_indices[:test_num]
 
-    token_pattern = u'(?u)[\\s\\t\\n!\\?\\^\\(-]([A-Za-z]{2,10})[\\s\\t\\n!\\?\\$\\.\\)-]'
-    vectorizer = CountVectorizer(stop_words='english', dtype='float64', token_pattern=token_pattern)
-    #analyze = vectorizer.build_analyzer()
+    token_pattern = u'(?u)[\\s\\t\\n!\\?\\^\\(-]([A-Za-z]{2,15})[\\s\\t\\n!\\?\\$\\.\\)-]'
+    vectorizer = CountVectorizer(stop_words=stop_words, dtype='float64', token_pattern=token_pattern,
+                                 strip_accents='unicode', min_df=5, max_df=0.5)
+
+    print 'fitting vectorizer...'
     X = vectorizer.fit_transform(doc_lists)
-    feature_names = vectorizer.get_feature_names()
+    word_indices = vectorizer.get_feature_names()
+
+    print 'compute idf...'
+    transformer = TfidfTransformer(norm=None)
+    transformer.fit(X)
+    idf = transformer.idf_
+
     print 'perform PLSA...'
-    model = train(data=X.transpose(), Z=30, maxiter=3000)
+    model = train(data=X.transpose(), Z=Z, maxiter=maxiter)
     p_z, p_w_z, p_d_z = model
 
+    print 'compute P(w|z), P(w|z), P(w|z), and P(w|z), etc...'
+    p_w = gen_p_w(p_w_z, p_z)
+    p_wz = gen_p_wz(p_w_z, p_z)
+    p_z_w = gen_p_z_w(p_wz, p_w)
+    p_d = gen_p_d(p_d_z, p_z)
+    p_dz = gen_p_dz(p_d_z, p_z)
+    p_z_d = gen_p_z_d(p_dz, p_d)
+
+    print 'computing idf-weighted P(w_z)...'
+    p_w_z_idf = np.multiply(p_w_z, idf.reshape((-1, 1)))
+
     print 'save results into .pkl file...'
-    enpickle(p_z, 'result/plsa/p_z.pkl')
-    enpickle(p_w_z, 'result/plsa/p_w_z.pkl')
-    enpickle(p_d_z, 'result/plsa/p_d_z.pkl')
-    enpickle(doc_lists, 'result/plsa/doc_indices.pkl')
-    enpickle(feature_names, 'result/plsa/feature_names.pkl')
+    plsa = {'p_z': p_z, 'p_w_z': p_w_z, 'p_d_z': p_d_z, 'p_w': p_w, 'p_wz': p_wz, 'p_z_w': p_z_w, 'idf': idf,
+            'p_w_z_idf': p_w_z_idf, 'p_d': p_d, 'p_dz': p_dz, 'p_z_d': p_z_d, 'doc_indices': doc_indices,
+            'word_indices': word_indices}
+    enpickle(plsa, 'result/plsa.pkl')

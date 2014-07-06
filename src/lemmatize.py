@@ -6,6 +6,7 @@ from nltk import word_tokenize, pos_tag
 from nltk.corpus import stopwords, wordnet
 from nltk.stem.wordnet import WordNetLemmatizer
 import re
+from module.text.stopword import extended_stopwords
 from utils.util import unpickle, enpickle
 
 __author__ = 'kensk8er'
@@ -14,14 +15,13 @@ __author__ = 'kensk8er'
 def get_tokens(text):
     lowers = text.lower()
 
-    #remove the punctuation using the character deletion step of translate
+    # remove the punctuation using the character deletion step of translate
     no_punctuation = lowers.translate(None, string.punctuation)
     tokens = word_tokenize(no_punctuation)
     return tokens
 
 
 def get_wordnet_pos(treebank_tag):
-
     if treebank_tag.startswith('J'):
         return wordnet.ADJ
     elif treebank_tag.startswith('V'):
@@ -36,8 +36,12 @@ def get_wordnet_pos(treebank_tag):
 
 
 if __name__ == '__main__':
+    # expand stopwords list
+    stop_words = extended_stopwords
+
+    # avoid URL and email address
     condition = re.compile('(^(http)\w+|^(mailto)\w+|\w{10,}(com)$)')
-    noun_only = True
+    noun_only = False
 
     print 'loading documents...'
     documents = unpickle('data/txt/documents.pkl')
@@ -51,8 +55,10 @@ if __name__ == '__main__':
         count += 1
         print '\r', count, '/', doc_num,
         text = document['text']
+        from_name = document['from']
+        date = document['date']
         tokens = get_tokens(text)
-        filtered = [w for w in tokens if not w in stopwords.words('english')]
+        filtered = [w for w in tokens if not w in stop_words]
         tagged = pos_tag(filtered)
 
         document = ''
@@ -64,7 +70,10 @@ if __name__ == '__main__':
                 if noun_only is False or tag == wordnet.NOUN:
                     document += lemmatizer.lemmatize(word[0], pos=tag) + ' '
 
-        new_documents[index] = document
+        new_documents[index] = {}
+        new_documents[index]['text'] = document
+        new_documents[index]['from'] = from_name
+        new_documents[index]['date'] = date
 
     print 'saving documents...'
     if noun_only is True:
