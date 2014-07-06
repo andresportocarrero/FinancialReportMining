@@ -35,13 +35,19 @@ def get_wordnet_pos(treebank_tag):
         return wordnet.NOUN
 
 
+def convert_compound(document):  # TODO: fix this ugly implementation
+    document = re.sub('morgan stanley', 'morgan_stanley', document)
+    document = re.sub('goldman sachs', 'goldman_sachs', document)
+    return document
+
+
 if __name__ == '__main__':
     # expand stopwords list
     stop_words = extended_stopwords
 
     # avoid URL and email address
     condition = re.compile('(^(http)\w+|^(mailto)\w+|\w{10,}(com)$)')
-    noun_only = False
+    noun_only = True
 
     print 'loading documents...'
     documents = unpickle('data/txt/documents.pkl')
@@ -69,6 +75,9 @@ if __name__ == '__main__':
                 # process NOUN only if noun_only is True
                 if noun_only is False or tag == wordnet.NOUN:
                     document += lemmatizer.lemmatize(word[0], pos=tag) + ' '
+
+        # convert compound word into one token
+        document = convert_compound(document)
 
         new_documents[index] = {}
         new_documents[index]['text'] = document

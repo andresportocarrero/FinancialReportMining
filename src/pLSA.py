@@ -56,7 +56,7 @@ if __name__ == '__main__':
     maxiter = 3000
 
     tm.TaskManager.OUTPUT_FOLDER = "./tmp"
-    documents = unpickle('data/txt/lemmatized_documents.pkl')
+    documents = unpickle('data/txt/lemmatized_noun_documents.pkl')
     doc_num = len(documents)
 
     # convert dictionary format into list format
@@ -68,7 +68,7 @@ if __name__ == '__main__':
         doc_lists = doc_lists[:test_num]
         doc_indices = doc_indices[:test_num]
 
-    token_pattern = u'(?u)[\\s\\t\\n!\\?\\^\\(-]([A-Za-z]{2,15})[\\s\\t\\n!\\?\\$\\.\\)-]'
+    token_pattern = u'(?u)[\\s\\t\\n!\\?\\^\\(-]([A-Za-z_]{2,15})[\\s\\t\\n!\\?\\$\\.\\)-]'
     vectorizer = CountVectorizer(stop_words=stop_words, dtype='float64', token_pattern=token_pattern,
                                  strip_accents='unicode', min_df=5, max_df=0.5)
 
