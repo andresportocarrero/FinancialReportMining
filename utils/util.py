@@ -6,6 +6,7 @@ General utility functions are defined here.
 import csv
 import json
 import sys
+import numpy as np
 
 __author__ = 'kensk8er'
 
@@ -142,6 +143,41 @@ def write_from_similarity_json(from_similarity, json_name):
         json.dump(from_similarity, f, sort_keys=True, indent=4)
 
 
+def write_plsa_json(plsa, json_name):
+    plsa = unpickle(plsa)
+    print('converting p_dz...')
+    plsa['p_dz'] = np.nan_to_num(plsa['p_dz']).tolist()
+    print('converting p_d...')
+    plsa['p_d'] = np.nan_to_num(plsa['p_d']).tolist()
+    print('converting p_w_z...')
+    plsa['p_w_z'] = np.nan_to_num(plsa['p_w_z']).tolist()
+    print('converting p_w_z_idf...')
+    plsa['p_w_z_idf'] = np.nan_to_num(plsa['p_w_z_idf']).tolist()
+    print('converting p_z_d...')
+    plsa['p_z_d'] = np.nan_to_num(plsa['p_z_d']).tolist()
+    print('converting p_wz...')
+    plsa['p_wz'] = np.nan_to_num(plsa['p_wz']).tolist()
+    print('converting p_d_z...')
+    plsa['p_d_z'] = np.nan_to_num(plsa['p_d_z']).tolist()
+    print('converting p_z...')
+    plsa['p_z'] = np.nan_to_num(plsa['p_z']).tolist()
+    print('converting idf...')
+    plsa['idf'] = np.nan_to_num(plsa['idf']).tolist()
+    print('converting p_w...')
+    plsa['p_w'] = np.nan_to_num(plsa['p_w']).tolist()
+    print('converting p_z_w...')
+    plsa['p_z_w'] = np.nan_to_num(plsa['p_z_w']).tolist()
+
+    with open(json_name, 'w') as f:
+        json.dump(plsa, f, sort_keys=True, indent=4)
+
+
+def write_time2topics_json(time2topics, json_name):
+    time2topics = unpickle(time2topics)
+    with open(json_name, 'w') as f:
+        json.dump(time2topics, f, sort_keys=True, indent=4)
+
+
 if __name__ == '__main__':
     args = sys.argv
     assert len(args) > 1, 'at least one argument needed!'
@@ -161,5 +197,11 @@ if __name__ == '__main__':
     elif args[1] == 'write_from_similarity_json':
         assert len(args) == 4, '3 arguments needed for function write_from_similarity_json!'
         write_from_similarity_json(from_similarity=args[2], json_name=args[3])
+    elif args[1] == 'write_plsa_json':
+        assert len(args) == 4, '3 arguments needed for function write_plsa_json!'
+        write_plsa_json(plsa=args[2], json_name=args[3])
+    elif args[1] == 'write_time2topics_json':
+        assert len(args) == 4, '3 arguments needed for function write_time2topics_json!'
+        write_time2topics_json(time2topics=args[2], json_name=args[3])
     else:
         print 'no function executed'
