@@ -4,6 +4,7 @@ util module
 General utility functions are defined here.
 """
 import csv
+import json
 import sys
 
 __author__ = 'kensk8er'
@@ -90,7 +91,7 @@ def write_topic_csv(plsa, csv_name, k):
         writer.writerow(row)
 
 
-def write_from_similarity(from_similarity, csv_name):
+def write_from_similarity_csv(from_similarity, csv_name):
     from_similarity = unpickle(from_similarity)
     similarity = from_similarity['similarity']
     frequency = from_similarity['frequency']
@@ -114,7 +115,7 @@ def write_from_similarity(from_similarity, csv_name):
         writer.writerow(row)
 
 
-def write_time_topics(time2topics, csv_name):
+def write_time_topics_csv(time2topics, csv_name):
     time2topics = unpickle(time2topics)
     Z = len(time2topics[0])
     writer = csv.writer(file(csv_name, 'w'))
@@ -134,6 +135,13 @@ def write_time_topics(time2topics, csv_name):
 
         writer.writerow(row)
 
+
+def write_from_similarity_json(from_similarity, json_name):
+    from_similarity = unpickle(from_similarity)
+    with open(json_name, 'w') as f:
+        json.dump(from_similarity, f, sort_keys=True, indent=4)
+
+
 if __name__ == '__main__':
     args = sys.argv
     assert len(args) > 1, 'at least one argument needed!'
@@ -142,13 +150,16 @@ if __name__ == '__main__':
         assert len(args) == 5, '4 arguments needed for function write_similarity_csv!'
         write_similarity_csv(pickle_indices=args[2], pickle_data=args[3], csv_name=args[4])
     elif args[1] == 'write_topic_csv':
-        assert len(args) == 5, '4 arguments needed for function write_similarity_csv!'
+        assert len(args) == 5, '4 arguments needed for function write_topic_csv!'
         write_topic_csv(plsa=args[2], csv_name=args[3], k=args[4])
-    elif args[1] == 'write_from_similarity':
-        assert len(args) == 4, '3 arguments needed for function write_similarity_csv!'
-        write_from_similarity(from_similarity=args[2], csv_name=args[3])
-    elif args[1] == 'write_time_topics':
-        assert len(args) == 4, '3 arguments needed for function write_similarity_csv!'
-        write_time_topics(time2topics=args[2], csv_name=args[3])
+    elif args[1] == 'write_from_similarity_csv':
+        assert len(args) == 4, '3 arguments needed for function write_from_similarity_csv!'
+        write_from_similarity_csv(from_similarity=args[2], csv_name=args[3])
+    elif args[1] == 'write_time_topics_csv':
+        assert len(args) == 4, '3 arguments needed for function write_time_topics_csv!'
+        write_time_topics_csv(time2topics=args[2], csv_name=args[3])
+    elif args[1] == 'write_from_similarity_json':
+        assert len(args) == 4, '3 arguments needed for function write_from_similarity_json!'
+        write_from_similarity_json(from_similarity=args[2], json_name=args[3])
     else:
         print 'no function executed'
