@@ -52,7 +52,8 @@ def clean_text(text):
     text = re.sub("(\w+)(-)(\w+)", r'\1 \3', text)  # hyphen
     text = re.sub("(mailto:\w+)", r'\1 \3', text)  # hyphen
     text = re.sub("=\r\n", '', text)  # next-line
-    text = re.sub("(\w{15,})", '', text)  # long characters
+    text = re.sub("([A-Za-z0-9\'~+\-=_.,/%\?!;:@#\*&\(\)]{15,})", '', text)  # long characters
+    text = re.sub("(\b)(\w)(\b)", r'\1 \3', text)  # short (single) characters
     text = re.sub("[0-9]", '', text)  # number
     return text
 
@@ -61,6 +62,7 @@ if __name__ == '__main__':
     # hyper-parameters
     noun_only = True
     max_doc = float('inf')
+    title_weight = 3
 
     # logging
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
@@ -85,7 +87,7 @@ if __name__ == '__main__':
             break
 
         print '\r', count, '/', doc_num,
-        text = document['text']
+        text = document['text'] + (' ' + index) * title_weight
         from_name = document['from']
         date = document['date']
 
@@ -102,7 +104,8 @@ if __name__ == '__main__':
 
             # process NOUN only if noun_only is True
             if noun_only is False or tag == wordnet.NOUN:
-                document.append(lemmatizer.lemmatize(word[0], pos=tag))
+                if len(word[0]) >= 2:
+                    document.append(lemmatizer.lemmatize(word[0], pos=tag))
 
         # convert compound word into one token
         document = convert_compound(document)
@@ -120,7 +123,7 @@ if __name__ == '__main__':
     dictionary.docid2date = dates
 
     logging.info('filter unimportant words...')
-    dictionary.filter_extremes(no_below=1, no_above=0.5, keep_n=None)
+    dictionary.filter_extremes(no_below=5, no_above=0.5, keep_n=None)
     dictionary.compactify()
 
     logging.info('generate corpus...')
