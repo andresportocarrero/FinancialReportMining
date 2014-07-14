@@ -4,13 +4,14 @@ Preprocessing text
 import logging
 import string
 from gensim import corpora
-from nltk import pos_tag, word_tokenize
+from gensim.utils import lemmatize
+from nltk import RegexpTokenizer
 from nltk.corpus import wordnet
 from nltk.stem.wordnet import WordNetLemmatizer
 import re
 from module.text.compoundword import compound_words
 from module.text.stopword import extended_stopwords
-from utils.util import unpickle, enpickle
+from utils.util import unpickle
 
 __author__ = 'kensk8er'
 
@@ -18,7 +19,8 @@ __author__ = 'kensk8er'
 def get_tokens(text):
     lowers = text.lower()
     no_punctuation = lowers.translate(None, string.punctuation)
-    return word_tokenize(no_punctuation)
+    tokenizer = RegexpTokenizer('[a-zA-Z]+')
+    return tokenizer.tokenize(no_punctuation)
 
 
 def get_wordnet_pos(treebank_tag):
@@ -54,13 +56,14 @@ def clean_text(text):
     text = re.sub("=\r\n", '', text)  # next-line
     text = re.sub("([A-Za-z0-9\'~+\-=_.,/%\?!;:@#\*&\(\)]{15,})", '', text)  # long characters
     text = re.sub("(\b)(\w)(\b)", r'\1 \3', text)  # short (single) characters
-    text = re.sub("[0-9]", '', text)  # number
+    text = re.sub("[0-9]", ' ', text)  # number
+    text = re.sub("\w*([~+\-=_/%@#\*&\?!]+\w+)", '', text)  # special code
     return text
 
 
 if __name__ == '__main__':
     # hyper-parameters
-    noun_only = True
+    allowed_pos = re.compile('(NN)')
     max_doc = float('inf')
     title_weight = 3
 
@@ -87,28 +90,23 @@ if __name__ == '__main__':
             break
 
         print '\r', count, '/', doc_num,
-        text = document['text'] + (' ' + index) * title_weight
+        text = document['text'] + (' ' + index) * title_weight  # incorporate title information
         from_name = document['from']
         date = document['date']
 
-        # delete irrelevant characters
-        text = clean_text(text)
-
-        tokens = get_tokens(text)
-        filtered = [w for w in tokens if not w in stop_words]
-        tagged = pos_tag(filtered)
+        cleaned = clean_text(text)  # delete irrelevant characters
 
         document = []
-        for word in tagged:
-            tag = get_wordnet_pos(word[1])
-
-            # process NOUN only if noun_only is True
-            if noun_only is False or tag == wordnet.NOUN:
-                if len(word[0]) >= 2:
-                    document.append(lemmatizer.lemmatize(word[0], pos=tag))
+        tokens = lemmatize(content=cleaned, allowed_tags=allowed_pos)  # lemmatize
+        for token in tokens:
+            word, pos = token.split('/')
+            document.append(word)
 
         # convert compound word into one token
         document = convert_compound(document)
+
+        # filter stop words
+        document = [w for w in document if not w in stop_words and 2 <= len(w) <= 15]
 
         new_documents.append(document)
         titles.append(index)
