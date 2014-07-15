@@ -118,8 +118,8 @@ if __name__ == '__main__':
     print 'computing P(z|w)...'
     p_z_w = gen_p_z_w(p_wz, p_w)
 
-    print 'computing P(w|z) / P(w) = P(z,w) / {P(z) * P(w)}...'
-    p_w_z_w = gen_p_w_z_w(p_w_z, p_w)
+    #print 'computing P(w|z) / P(w) = P(z,w) / {P(z) * P(w)}...'
+    #p_w_z_w = gen_p_w_z_w(p_w_z, p_w)
 
     print 'computing P(d)...'
     p_d = gen_p_d(p_d_z, p_z)
@@ -134,4 +134,7 @@ if __name__ == '__main__':
     enpickle(p_w, 'result/plsa/p_w.pkl')
     enpickle(p_wz, 'result/plsa/p_wz.pkl')
     enpickle(p_z_w, 'result/plsa/p_z_w.pkl')
-    enpickle(p_w_z_w, 'result/plsa/p_w_z_w.pkl')
+    #enpickle(p_w_z_w, 'result/plsa/p_w_z_w.pkl')
+    enpickle(p_d, 'result/plsa/p_d.pkl')
+    enpickle(p_dz, 'result/plsa/p_dz.pkl')
+    enpickle(p_z_d, 'result/plsa/p_z_d.pkl')

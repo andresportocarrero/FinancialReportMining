@@ -75,8 +75,8 @@ if __name__ == '__main__':
     ))
 
     # reduce the number of documents for now
-    doc_lists = doc_lists[:400]
-    doc_indices = doc_indices[:400]
+    #doc_lists = doc_lists[:400]
+    #doc_indices = doc_indices[:400]
 
     # calculate TF-IDF
     print 'calculate TF-IDF...'

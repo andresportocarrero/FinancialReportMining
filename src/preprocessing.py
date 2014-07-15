@@ -1,15 +1,12 @@
 """
-Preprocessing text
+Preprocessing text (takes approximately 30 minutes for 9,000 financial reports)
 """
 import logging
 from gensim import corpora
-from gensim.utils import lemmatize
-<<<<<<< HEAD
-=======
 from nltk import RegexpTokenizer
 from nltk.corpus import wordnet
 from nltk.stem.wordnet import WordNetLemmatizer
->>>>>>> 37ff596bc632e6a5ba1dd48716a13b7e60064343
+from gensim.utils import lemmatize, revdict
 import re
 from module.text.compoundword import compound_words
 from module.text.stopword import extended_stopwords
@@ -27,6 +24,7 @@ def convert_compound(document):
 
 
 def clean_text(text):
+    # TODO: a bit like black magic... simplify this.
     text = re.sub("(http(s)?://[A-Za-z0-9\'~+\-=_.,/%\?!;:@#\*&\(\)]+)", '', text)  # URL
     text = re.sub("(www\.[A-Za-z0-9\'~+\-=_.,/%\?!;:@#\*&\(\)]+)", '', text)  # URL
     text = re.sub("([A-Za-z0-9\'~+\-=_.,/%\?!;:@#\*&\(\)]+\.\w+)", '', text)  # URL
@@ -106,5 +104,6 @@ if __name__ == '__main__':
 
     logging.info('generate corpus...')
     dictionary.corpus = [dictionary.doc2bow(document) for document in new_documents]
+    dictionary.id2token = revdict(dictionary.token2id)
 
     dictionary.save('data/dictionary/dictionary_' + allowed_pos.pattern + '.dict')

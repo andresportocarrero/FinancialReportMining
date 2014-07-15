@@ -3,13 +3,14 @@ Executable file for PLSA (Probabilistic Latent Semantic Analysis).
 
 When running this file, 'working directory' need to be specified as Project Root (FinancialReportMining).
 """
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+import numpy as np
 from module.plsa.gen_prob import gen_p_w, gen_p_wz, gen_p_z_w, gen_p_d, gen_p_dz, gen_p_z_d
-from module.plsa.plsa import pLSA, normalize
+from module.plsa.plsa import pLSA
 from module.text.stopword import extended_stopwords
 import utils.taskmanager.taskmanager as tm
 from utils.util import unpickle, enpickle
-import numpy as np
+
 
 __author__ = 'kensk8er'
 

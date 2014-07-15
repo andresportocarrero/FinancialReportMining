@@ -34,6 +34,7 @@ def sort_by_time(documents, doc_indices, time_interval):
 
     time2doc_ids = defaultdict(list)
     for doc_id, raw_time in doc_id2raw_time.items():
+        # TODO: implement MONTH
         if time_interval is WEEK:
             diff = (raw_time - start_date).days
             time = diff // 7
@@ -60,4 +61,4 @@ if __name__ == '__main__':
     documents = unpickle('data/txt/lemmatized_noun_documents.pkl')
     time2doc_ids = sort_by_time(documents, plsa['doc_indices'], interval)
     time2topics = compute_topics_by_time(time2doc_ids, plsa['p_z_d'])
-    enpickle(time2topics, 'result/week2topics.pkl')
+    enpickle(time2topics, 'result/week2topics_verb.pkl')

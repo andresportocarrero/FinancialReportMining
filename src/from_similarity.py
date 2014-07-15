@@ -88,7 +88,7 @@ def compute_similarity(document_matrix):
     print 'calculate similarities...'
     similarity_matrix = inner_product_matrix / norm_matrix
 
-    return np.nan_to_num(similarity_matrix).tolist()
+    return np.nan_to_num(similarity_matrix).tolist()  # convert to list such that it can be dumpt into json
 
 
 def convert_from_vectors(from_vectors):
