@@ -4,6 +4,12 @@ Preprocessing text
 import logging
 from gensim import corpora
 from gensim.utils import lemmatize
+<<<<<<< HEAD
+=======
+from nltk import RegexpTokenizer
+from nltk.corpus import wordnet
+from nltk.stem.wordnet import WordNetLemmatizer
+>>>>>>> 37ff596bc632e6a5ba1dd48716a13b7e60064343
 import re
 from module.text.compoundword import compound_words
 from module.text.stopword import extended_stopwords
