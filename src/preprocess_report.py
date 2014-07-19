@@ -3,41 +3,13 @@ Preprocessing text (takes approximately 30 minutes for 9,000 financial reports)
 """
 import logging
 from gensim import corpora
-from nltk import RegexpTokenizer
-from nltk.corpus import wordnet
-from nltk.stem.wordnet import WordNetLemmatizer
 from gensim.utils import lemmatize, revdict
 import re
-from module.text.compoundword import compound_words
+from module.text.preprocessing import convert_compound, clean_text
 from module.text.stopword import extended_stopwords
 from utils.util import unpickle
 
 __author__ = 'kensk8er'
-
-
-def convert_compound(document):
-    doc_string = " ".join(document)
-    for compound_word in compound_words:
-        doc_string = re.sub(compound_word, re.sub('\s', '-', compound_word), doc_string)
-
-    return doc_string.split()
-
-
-def clean_text(text):
-    # TODO: a bit like black magic... simplify this.
-    text = re.sub("(http(s)?://[A-Za-z0-9\'~+\-=_.,/%\?!;:@#\*&\(\)]+)", '', text)  # URL
-    text = re.sub("(www\.[A-Za-z0-9\'~+\-=_.,/%\?!;:@#\*&\(\)]+)", '', text)  # URL
-    text = re.sub("([A-Za-z0-9\'~+\-=_.,/%\?!;:@#\*&\(\)]+\.\w+)", '', text)  # URL
-    text = re.sub("(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})", '', text)  # email
-    text = re.sub("(-{2,})", '', text)  # hyphen
-    text = re.sub("(\w+)(-)(\w+)", r'\1 \3', text)  # hyphen
-    text = re.sub("(mailto:\w+)", r'\1 \3', text)  # hyphen
-    text = re.sub("=\r\n", '', text)  # next-line
-    text = re.sub("([A-Za-z0-9\'~+\-=_.,/%\?!;:@#\*&\(\)]{15,})", '', text)  # long characters
-    text = re.sub("(\b)(\w)(\b)", r'\1 \3', text)  # short (single) characters
-    text = re.sub("[0-9]", ' ', text)  # number
-    text = re.sub("\w*([~+\-=_/%@#\*&\?!]+\w+)", '', text)  # special code
-    return text
 
 
 if __name__ == '__main__':
@@ -83,8 +55,8 @@ if __name__ == '__main__':
         # convert compound word into one token
         document = convert_compound(document)
 
-        # filter stop words
-        document = [w for w in document if not w in stop_words and 2 <= len(w) <= 15]
+        # filter stop words, long words, and non-english words
+        document = [w for w in document if not w in stop_words and 2 <= len(w) <= 15 and w.islower()]
 
         new_documents.append(document)
         titles.append(index)
@@ -106,4 +78,4 @@ if __name__ == '__main__':
     dictionary.corpus = [dictionary.doc2bow(document) for document in new_documents]
     dictionary.id2token = revdict(dictionary.token2id)
 
-    dictionary.save('data/dictionary/dictionary_' + allowed_pos.pattern + '.dict')
+    dictionary.save('data/dictionary/report_' + allowed_pos.pattern + '.dict')

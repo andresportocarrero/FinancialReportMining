@@ -6,6 +6,7 @@ When running this file, 'working directory' need to be specified as Project Root
 import logging
 from gensim import corpora
 from gensim.models import LdaModel, TfidfModel
+import itertools
 import numpy as np
 from utils.util import unpickle
 
@@ -13,38 +14,49 @@ __author__ = 'kensk8er'
 
 if __name__ == '__main__':
     # parameters
-    max_doc = 9000
-    num_topics = 200
-    sparsity = 0.5
+    num_topics = 100
+    use_wiki = True
+    passes = 1
+    iterations = 50
+    chunksize = 200
 
     # logging
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 
     # load data
-    dictionary = corpora.Dictionary.load('data/dictionary/noun_dictionary.dict')
-    corpus = dictionary.corpus
+    report_dict = corpora.Dictionary.load('data/dictionary/report_(NN).dict')
+    report_corpus = report_dict.corpus
+
+    if use_wiki is True:
+        # wiki_dict = corpora.Dictionary.load('data/dictionary/wiki_(NN).dict')
+        # wiki_corpus = wiki_dict.corpus
+        #
+        # logging.info('combine report and wiki dictionary...')
+        # wiki_to_report = report_dict.merge_with(wiki_dict)
+        # merged_dict = report_dict
+        #
+        # logging.info('combine report and wiki corpus...')
+        # merged_corpus = wiki_to_report[wiki_corpus].corpus + report_corpus
+        logging.info('generate wiki corpus...')
+        wiki_txt = unpickle('data/txt/processed_wiki.pkl')
+        wiki_corpus = [report_dict.doc2bow(wiki) for wiki in wiki_txt]
+
+        logging.info('combine report and wiki corpus...')
+        merged_corpus = wiki_corpus + report_corpus
 
     # compute TFIDF
-    logging.info('compute TFIDF...')
-    tfidf = TfidfModel(dictionary=dictionary, id2word=dictionary)
-    # idfs = [0 for i in xrange(len(tfidf.idfs))]
-    # for index, idf in tfidf.idfs.items():
-    #     idfs[index] = idf
-    # idfs = np.array(idfs)
+    # logging.info('compute TFIDF...')
+    # tfidf = TfidfModel(dictionary=report_dict, id2word=report_dict)
 
     # perform LDA
     logging.info('perform LDA...')
-    optimal_alpha = unpickle('result/optimal_alpha.pkl') * sparsity
-    uniform_alpha = np.array([1. for i in range(num_topics)])
-    lda = LdaModel(corpus=tfidf[corpus], id2word=dictionary, num_topics=num_topics, passes=30, iterations=50,
-                   alpha='auto')
-    lda.save('result/model.lda')
-
-    # # weight LDA model with TF-IDF
-    # logging.info('weight LDA with TFIDF...')
-    # lda.state.sstats = np.multiply(lda.state.sstats, idfs.T)
-    #
-    # # print LDA model
-    # lda.print_topics(topics=num_topics, topn=10)
-    # lda.idf = idfs
-    # lda.save('result/model_tfidf.lda')
+    if use_wiki is True:
+        lda = LdaModel(corpus=merged_corpus, id2word=report_dict, num_topics=num_topics, passes=passes,
+                       iterations=iterations, alpha='auto', chunksize=chunksize)
+        lda.save('result/model_wiki.lda')
+        lda.print_topics(topics=num_topics, topn=10)
+    else:
+        lda = LdaModel(corpus=report_corpus, id2word=report_dict, num_topics=num_topics, passes=passes,
+                       iterations=iterations, alpha='auto', chunksize=chunksize)
+        lda.save('result/model.lda')
+        lda.print_topics(topics=num_topics, topn=10)
