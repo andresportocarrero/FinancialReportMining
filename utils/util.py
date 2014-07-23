@@ -7,6 +7,7 @@ import csv
 import json
 import sys
 import numpy as np
+import re
 
 __author__ = 'kensk8er'
 
@@ -57,6 +58,7 @@ def write_similarity_csv(pickle_indices, pickle_data, csv_name):
     print '\r', count, '/', index_num,
 
 
+# TODO: rewrite to output csv for LDA data
 def write_topic_csv(plsa, csv_name, k):
     plsa = unpickle(plsa)
     k = int(k)
@@ -93,27 +95,30 @@ def write_topic_csv(plsa, csv_name, k):
 
 
 def write_from_similarity_csv(from_similarity, csv_name):
-    from_similarity = unpickle(from_similarity)
-    similarity = from_similarity['similarity']
-    frequency = from_similarity['frequency']
-    id2from = from_similarity['id2from']
-    from_num = len(id2from)
-    writer = csv.writer(file(csv_name, 'w'))
+    from_similarities = unpickle(from_similarity)
+    for time, from_similarity in from_similarities.items():
+        similarity = from_similarity['similarity']
+        frequency = from_similarity['frequency']
+        id2from = from_similarity['id2from']
+        writer = csv.writer(file(re.sub('.csv', '_' + str(time) + '.csv', csv_name), 'w'))
 
-    # 1st row
-    row = ['']
-    for from_name in id2from:
-        row.append(from_name + ' : ' + str(frequency[id2from.index(from_name)]))
-    writer.writerow(row)
-
-    # 2nd row and onwards
-    for row_num in range(from_num):
-        row = [id2from[row_num] + ' : ' + str(frequency[row_num])]
-
-        for col_num in range(from_num):
-            row.append(similarity[row_num, col_num])
-
+        # 1st row
+        row = ['', '', '']
+        for from_id, from_name in enumerate(id2from):
+            if frequency[from_id] > 0:  # print only when that from_name sent an email at that time frame
+                row.append(str(from_id))
         writer.writerow(row)
+
+        # 2nd row and onwards
+        for from_id_row, from_name_row in enumerate(id2from):
+            if frequency[from_id_row] > 0:  # print only when that from_name sent an email at that time frame
+                row = [str(from_id_row), from_name_row, str(frequency[from_id_row])]
+
+                for from_id_col, from_name_col in enumerate(id2from):
+                    if frequency[from_id_col] > 0:  # print only when that from_name sent an email at that time frame
+                        row.append(similarity[from_id_row][from_id_col])
+
+                writer.writerow(row)
 
 
 def write_time_topics_csv(time2topics, csv_name):

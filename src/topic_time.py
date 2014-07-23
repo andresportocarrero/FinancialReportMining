@@ -2,6 +2,9 @@
 Generate the distribution of topics P(z) on each time (weekly, monthly, etc.)
 """
 from collections import defaultdict
+import logging
+from gensim.corpora import Dictionary
+from gensim.models import LdaModel
 from utils.util import unpickle, enpickle
 
 __author__ = 'kensk8er'
@@ -12,42 +15,35 @@ WEEK = 0
 MONTH = 1
 
 
-def sort_by_time(documents, doc_indices, time_interval):
+def sort_by_time(dictionary, time_interval):
     """
     Sort documents by certain time-interval, and return time-interval:doc_ids pairs.
 
-    :param documents: documents (having time data)
-    :param doc_indices: document indices
+    :param dictionary: dictionary (having time data)
     :param time_interval: time-interval by which doc_ids are sort
     :return: time-sorted document indices
     """
-    def convert_time(documents, doc_indices):
-        doc_id2raw_time = {}
-        for title, document in documents.items():
-            doc_id = doc_indices.index(title)
-            time = document['date']
-            doc_id2raw_time[doc_id] = time
-        return doc_id2raw_time
+    start_date = sorted(dictionary.docid2date)[0]
 
-    doc_id2raw_time = convert_time(documents, doc_indices)
-    start_date = sorted(doc_id2raw_time.items(), key=lambda x:x[1])[0][1]
-
-    time2doc_ids = defaultdict(list)
-    for doc_id, raw_time in doc_id2raw_time.items():
+    time2docids = defaultdict(list)
+    for doc_id, raw_time in enumerate(dictionary.docid2date):
         # TODO: implement MONTH
         if time_interval is WEEK:
             diff = (raw_time - start_date).days
             time = diff // 7
-            time2doc_ids[time].append(doc_id)
-    return time2doc_ids
+            time2docids[time].append(doc_id)
+    return time2docids
 
 
-def compute_topics_by_time(time2doc_ids, p_z_d):
+def compute_topics_by_time(time2doc_ids, model, dictionary):
     N = len(time2doc_ids)
+    logging.info('Performing inference on corpora...')
+    p_z_d = model.inference(dictionary.corpus)[0].T
+    p_z_d = p_z_d / p_z_d.sum(axis=0).reshape(1, p_z_d.shape[1])  # normalize to make it probability
     Z = p_z_d.shape[0]
     time2topics = [[0 for i in range(Z)] for j in range(N)]
 
-    for time, doc_ids in time2doc_ids.items():  # TODO: improve this for loop (not element-wise)
+    for time, doc_ids in time2doc_ids.items():  # FIXME: improve this for loop (not element-wise)
         for z in range(Z):
             for doc_id in doc_ids:
                 if p_z_d[z, doc_id] > 0:
@@ -56,9 +52,16 @@ def compute_topics_by_time(time2doc_ids, p_z_d):
 
 
 if __name__ == '__main__':
+    # logging
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
+
     interval = WEEK
-    plsa = unpickle('result/plsa.pkl')
-    documents = unpickle('data/txt/lemmatized_noun_documents.pkl')
-    time2doc_ids = sort_by_time(documents, plsa['doc_indices'], interval)
-    time2topics = compute_topics_by_time(time2doc_ids, plsa['p_z_d'])
-    enpickle(time2topics, 'result/week2topics_verb.pkl')
+    logging.info('Loading model...')
+    model = LdaModel.load(fname='result/model.lda')
+    logging.info('Loading dictinary...')
+    dictionary = Dictionary.load('data/dictionary/report_(NN).dict')
+    logging.info('Sort documents by time...')
+    time2docids = sort_by_time(dictionary, interval)
+    logging.info('Compute topic distribution for each time...')
+    time2topics = compute_topics_by_time(time2docids, model, dictionary)
+    enpickle(time2topics, 'result/week2topics.pkl')
