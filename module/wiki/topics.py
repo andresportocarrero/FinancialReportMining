@@ -19,12 +19,8 @@ def get_keywords(threshold=0.01, model_path='result/model.lda'):
 
     return keywords
 
-# topics = ['Middle East', 'War', 'Syria', 'Japan', 'Ukraine', 'Russia', 'New Zealand', 'Currency', 'EU', 'Greece',
-# 'France', 'Italy', 'Election', 'India', 'Scotland', 'China', 'Alcoholic beverage', 'Metal', 'Latin America',
-#           'Health care', 'Car industry', 'Foreign exchange market', 'Monetary policy', 'Employment', 'Macroeconomics',
-#           'Debt', 'Energy industry', 'Government', 'Asia', 'Bond (finance)', 'Equity (finance)', 'Australia',
-#           'Eastern Europe']
 
+# hand-selected keywords (not used currently)
 keywords = {'season', 'drag', 'delay', 'respondent', 'farm', 'hawk', 'wait', 'vail', 'strat', 'cli', 'signal', 'ratio',
           'wave', 'sequential', 'saar', 'correction', 'trend', 'principle', 'trading', 'charge', 'economic', 'scenario',
           'uncertainty', 'framework', 'challenge', 'implication', 'troika', 'shock', 'implementation', 'style', 'ec',

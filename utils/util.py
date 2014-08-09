@@ -183,6 +183,27 @@ def write_time2topics_json(time2topics, json_name):
         json.dump(time2topics, f, sort_keys=True, indent=4)
 
 
+def write_topic_similarity_csv(topic_similarities, csv_name):
+    topic_similarities = unpickle(topic_similarities)
+    topic_num = len(topic_similarities)
+    writer = csv.writer(file(csv_name, 'w'))
+
+    # 1st row
+    row = ['']
+    for topic_id in range(len(topic_similarities)):
+        row.append('topic id:' + str(topic_id))
+    writer.writerow(row)
+
+    # 2nd row and onwards
+    for topic_id_row, topic_similarity_row in enumerate(topic_similarities):
+        row = ['topic id :' + str(topic_id_row)]
+
+        for topic_id, topic_similarity in enumerate(topic_similarity_row):
+            row.append(topic_similarity)
+
+        writer.writerow(row)
+
+
 if __name__ == '__main__':
     args = sys.argv
     assert len(args) > 1, 'at least one argument needed!'
@@ -199,6 +220,9 @@ if __name__ == '__main__':
     elif args[1] == 'write_time_topics_csv':
         assert len(args) == 4, '3 arguments needed for function write_time_topics_csv!'
         write_time_topics_csv(time2topics=args[2], csv_name=args[3])
+    elif args[1] == 'write_topic_similarity_csv':
+        assert len(args) == 4, '3 arguments needed for function write_topic_similarity_csv!'
+        write_topic_similarity_csv(topic_similarities=args[2], csv_name=args[3])
     elif args[1] == 'write_from_similarity_json':
         assert len(args) == 4, '3 arguments needed for function write_from_similarity_json!'
         write_from_similarity_json(from_similarity=args[2], json_name=args[3])
