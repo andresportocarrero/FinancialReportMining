@@ -121,6 +121,32 @@ def write_from_similarity_csv(from_similarity, csv_name):
                 writer.writerow(row)
 
 
+def write_from_topic_csv(from_similarity, csv_name):
+    from_similarities = unpickle(from_similarity)
+    for time, from_similarity in from_similarities.items():
+        # similarity = from_similarity['similarity']
+        frequency = from_similarity['frequency']
+        id2from = from_similarity['id2from']
+        topic = from_similarity['topic']
+        topic_order = topic.argsort().T[::-1]  # row: order, col: from
+        writer = csv.writer(file(re.sub('.csv', '_' + str(time) + '.csv', csv_name), 'w'))
+
+        # 1st row
+        row = ['']
+        for from_id, from_name in enumerate(id2from):
+            if frequency[from_id] > 0:  # print only when that from_name sent an email at that time frame
+                row.append('from_id=' + str(from_id))
+        writer.writerow(row)
+
+        # 2nd row and onwards
+        for rank in range(30):
+            row = ['']
+            for from_id_row, from_name_row in enumerate(id2from):
+                if frequency[from_id_row] > 0:  # print only when that from_name sent an email at that time frame
+                    row.append('topic' + str(topic_order[rank, from_id_row]))
+            writer.writerow(row)
+
+
 def write_time_topics_csv(time2topics, csv_name):
     time2topics = unpickle(time2topics)
     Z = len(time2topics[0])
@@ -217,6 +243,9 @@ if __name__ == '__main__':
     elif args[1] == 'write_from_similarity_csv':
         assert len(args) == 4, '3 arguments needed for function write_from_similarity_csv!'
         write_from_similarity_csv(from_similarity=args[2], csv_name=args[3])
+    elif args[1] == 'write_from_topic_csv':
+        assert len(args) == 4, '3 arguments needed for function write_from_topic_csv!'
+        write_from_topic_csv(from_similarity=args[2], csv_name=args[3])
     elif args[1] == 'write_time_topics_csv':
         assert len(args) == 4, '3 arguments needed for function write_time_topics_csv!'
         write_time_topics_csv(time2topics=args[2], csv_name=args[3])

@@ -1,7 +1,7 @@
 """
 Compute the similarities between each 'from' of a report over time.
 
-Using P(d|z) as document features.
+Using P(z|d) as document features.
 """
 from collections import defaultdict
 import logging
@@ -140,6 +140,7 @@ if __name__ == '__main__':
         from_matrix, from_indices = convert_from_vectors(from_vectors)
         similarities = compute_similarity(from_matrix)
         id_frequencies = convert_from_id(from_frequencies, from_indices)
-        from_similarity[time] = {'similarity': similarities, 'id2from': from_indices, 'frequency': id_frequencies}
+        from_similarity[time] = {'similarity': similarities, 'id2from': from_indices, 'frequency': id_frequencies,
+                                 'topic': from_matrix}
 
     enpickle(from_similarity, 'result/from_similarity_wiki.pkl')
